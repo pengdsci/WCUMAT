@@ -1,7 +1,7 @@
 ---
 title: "Comparing Students' Performance in MAT112 and MAT113"
 author: "Department Mathematics"
-date: '1/5/2024 '
+date: '1/10/2024 '
 output:
   html_document:
     toc: yes
@@ -88,6 +88,10 @@ if (!require("plotly")) {
    install.packages("plotly")
    library(plotly)
 }
+if (!require("data.table")) {
+   install.packages("data.table")
+   library(data.table)
+}
 
 knitr::opts_chunk$set(echo = FALSE,       
                       warning = FALSE,   
@@ -103,14 +107,15 @@ knitr::opts_chunk$set(echo = FALSE,
 <tr><td style="font-family: Georgia, serif; font-size:110%;">
 <br><br>
 <h2><center><font style="font-variant: small-caps;">Executive Summary</font></center></h2> 
+<center>|<a href="https://pengdsci.github.io/WCUMAT/MAT112-113-RMD-Source.txt"> Source Code</a>|<a href="https://pengdsci.github.io/WCUMAT/MAT112VS113-Version02.pdf">PDF Version</a>|</center>
 <br>
 This project used a semi-controlled experiment design in the data collection process to remove grading bias. Four instructors who taught **both** MAT112 **and** MAT113 in the fall semester of 2023 were invited to the study and their MAT112 and MAT113 classes were all included as the study sample. Students were recommended to MAT112 and MAT113 based on their PPL scores. However, students' enrollment into individual sections within MAT112 and MAT113 were considered to be random. All MAT112 and MAT113 sections used the same common exam. Each instructor was assigned a set of questions and graded them across all sections of MAT112 and MAT113. The Students' performance in these two courses was measured by the scores of the common exam.
 
-In general, exam scores are influenced by various factors such as student preparedness (measured by PPL scores), instructors' strategies in teaching, and others. In this analysis, both visual and inferential methods were used to extract the true difference between mean exam scores in MAT112 and MAT113 with related effects caused due to other factors being removed. This true difference terms as the <font color = "red">*net performance gain*</font> in the academic performance due to the one extra credit hour added to MAT112.   
+In general, exam scores are influenced by various factors such as student preparedness (measured by PPL scores), instructors' strategies in teaching, and others. In this analysis, both visual and inferential methods were used to extract the true difference between mean exam scores in MAT112 and MAT113 with related effects caused due to other factors being removed. This true difference terms as the <font color = "red">*net performance gain*</font> in the academic performance due to **the two extra contact hours** added to MAT112.   
 
 Some of the key findings are outlined in the following.
 
-1. There was a solid evidence that MAT112 students outperformed MAT113 students with a <font color = "red">*net performance gain*</font> of nearly 11 points (out of 100).
+1. There was a solid evidence that MAT112 students outperformed MAT113 students with a <font color = "red">*net performance gain*</font> of nearly 14 points (out of 100).
 
 2. MAT112 students had significantly lower PPL scores than their peers in MAT113.
 
@@ -139,13 +144,15 @@ Some of the key findings are outlined in the following.
 
 <br><br><br>
 
+
+
 # Introduction
 
-The learning outcomes and the core coverage of both MAT112 and MAT113 are the same. MAT112 has one extra credit hour to cover basic algebra while MAT113 only does a brief review of the basic algebra. The goal of this analysis is to assess the <font color = "red">*\color{red} "net performance gain" (NG, to be elaborated later)*</font> solely due to the addition of one extra credit hour to MAT112. The performance is measured with the transformed grade in a common exam given to participants in the entire study sample. 
+The learning outcomes and the core coverage of both MAT112 (4 cr) and MAT113 (3 cr) are the same. MAT113 is a 3-credit course. MAT112 carries 4 institutional credit hours but students in this course receive 5 contact hours per week. That is, MAT112 instructors use these *two extra contact hours* to cover basic algebra. The goal of this analysis is to assess the <font color = "red">*\color{red} "net performance gain" (NG, to be elaborated later)*</font> solely due to the two extra contact hours in MAT112. In this analysis, the performance is measured with a transformed grade from a common exam given to participants in the entire study sample. 
 
-To extract the <font color = "red">*\color{red}The \textbf{net performance gain}*</font> solely due to the addition of one credit hour to MAT112, all effects that have influences on the exam grade should be removed (or adjusted). The method of linear regression modeling can help achieve the goal. In fact, <font color = "red">*\color{red}The \textbf{net performance gain} is the regression coefficient of courseID.*</font>. 
+To extract the <font color = "red">*\color{red} net performance gain*</font> solely due to the two extra contact hours in MAT112, all effects that have influences on the exam grade should be removed (or adjusted). The method of linear regression modeling can help achieve the goal. In fact, <font color = "red">*\color{red}The net performance gain is the regression coefficient of courseID.*</font>. 
 
-In general, omitting influential factors leads to biased estimates of the regression coefficients including *net performance gain*. To find the accurate *net performance gain*, we proceeded with the subsequent analysis by identifying possible influential factors to include in the model to correct the bias in the *net performance gain*. We call this process <font color = "red">*\color{red}\textbf{model adjustment}*.</font> 
+In general, omitting influential factors leads to biased estimates of the regression coefficients including *net performance gain*. To find the accurate *net performance gain*, we proceeded with the subsequent analysis by identifying possible influential factors to include in the model to correct the bias in the *net performance gain*. We call this process <font color = "red">*\color{red} model adjustment*.</font> 
 
 
 # Data Collection and Preparation
@@ -167,9 +174,7 @@ The measurements used to assess the performance in these two courses are the gra
 
 ## Data Processing and Cleaning
 
-Some standard data cleaning and processing procedures were performed to create the final analytic data sets. The major data steps taken in the process were data merging and data conversion.
-
-Since 24 students in the sample did *not* have a math placement score, merging all three data sources to make a single analytic data set will lead to a reduced sample. We decided to create two analytic data sets: (1) merging all three data sources to create an analytic data set with 254 records; and (2) combining class rosters and exam data (278 records) for analysis without using placement scores.
+Some standard data cleaning and processing procedures were performed to create the final analytic data sets. The major data steps taken in the process were data merging and data conversion. Three data sources were available in this study: Exam grade book, PPL exam grades, and class rosters. We merge all three data sources to create an analytic data set with 278 records.
 
 
 ```{r}
@@ -178,22 +183,37 @@ mpe22=read.csv("C:\\Users\\75CPENG\\OneDrive - West Chester University of PA\\De
 mpe23=read.csv("C:\\Users\\75CPENG\\OneDrive - West Chester University of PA\\Desktop\\cpeng\\WCU-Teaching\\2024Spring\\AWA\\MPEFall23.csv")
 roster=read.csv("C:\\Users\\75CPENG\\OneDrive - West Chester University of PA\\Desktop\\cpeng\\WCU-Teaching\\2024Spring\\AWA\\roster.csv")
 ## processing
-mpe0 = rbind(mpe22, mpe23)
-##
+mpe00 = rbind(mpe22, mpe23)
+## Need to remove take the highest score among multiple attempts
+mpe01 = mpe00[with(mpe00, order(Email, PlacePer)), ]
+mpe01$mpeScore = as.numeric(gsub('%','',mpe01$PlacePer))
+mpe011 = as.data.table(mpe01)
+mpe0=mpe011[mpe011[, .I[mpeScore == max(mpeScore)], by=Email]$V1]
+####
 email=mpe0$Email
 atloc0=unlist(gregexpr('@', email))
 ## deleting records with missing emails from MPE
-mpe = mpe0[which(atloc0==9 | atloc0==10),]
+mpe00 = mpe0[which(atloc0==9 | atloc0==10),]
 atloc = atloc0[which(atloc0==9 | atloc0==10)]
 ##
-substr0=substr(mpe$Email, 1, atloc-1)
+substr0=substr(mpe00$Email, 1, atloc-1)
 ctr=nchar(substr0)
 ID = substr(substr0, 3, ctr)
-mpe$ID = ID
+mpe00$ID = ID
+##
+anal.mpe = mpe00[,c("ID", "PlaceCtr", "ESL", "mpeScore")]
+simpleMPE = read.csv("C:\\Users\\75CPENG\\OneDrive - West Chester University of PA\\Desktop\\cpeng\\WCU-Teaching\\2024Spring\\AWA\\analyticMPE.csv")
+AdditionalMPE = read.csv("C:\\Users\\75CPENG\\OneDrive - West Chester University of PA\\Desktop\\cpeng\\WCU-Teaching\\2024Spring\\AWA\\STmpeAdditions.csv")
+mpe = rbind(simpleMPE,AdditionalMPE)
+###
 ### Combining all data sets - inner join
 roster.exam = merge(roster, exam, by = "ID")
 mpe.exam = merge(mpe, exam, by = "ID")
 alldata = merge(mpe.exam, roster, by="ID")
+Q30 = rep("No ", dim(alldata)[1])
+Q30ID113 = which(alldata$mpeScore<40 & alldata$Course==113)
+Q30[Q30ID113] = "Yes" 
+alldata$Q30 = Q30
 ```
 
 
@@ -203,7 +223,7 @@ Data conversion in this analysis was based on two considerations: Privacy protec
 
 ### De-identification
 
-The sole objective of this study is to assess the <font color = "red">*\color{red}\textit{net performance gain}* </font> of the one extra credit hour added to MAT112. However, a student’s performance in the common exam could be affected by different factors including the instructor’s teaching and student preparedness. Students’ PPL scores were recorded after they completed the placement test. A proxy instructor ID was used to de-identify the information of participating instructors.
+The sole objective of this study is to assess the <font color = "red">*\color{red} net performance gain* </font> of the one extra credit hour added to MAT112. However, a student’s performance in the common exam could be affected by different factors including the instructor’s teaching and student preparedness. Students’ PPL scores were recorded after they completed the placement test. A proxy instructor ID was used to de-identify the information of participating instructors.
 
 We used two different proxy variables for instructors on different occasions to increase the level of privacy protection. Furthermore, The exam scores were converted to a new scale so that the newly converted variable carried the same information as the original grades.
 
@@ -211,36 +231,9 @@ We used two different proxy variables for instructors on different occasions to 
 
 Students' intended majors at the time of placement test and prior math classes are the two sparse categorical variables. These two variables cannot be used for analysis in their original forms due to sparse categories. We redefined these two variables based on their original distributions. The detailed definitions can be found in the RMarkdown source code.
 
-
-
 ```{r}
-#names(alldata)
-var.name=c("ID", "PlaceCtr", "PlaceTime", "PlacePer", "Level.x", "Class", "ESL", "StudentStatus", "Section", "Q3", "Q45",  "Q67", "Q89", "Q10a2c", "Q10d2f"   , "Q10g2i", "Q11", "Q1213" , "Q14",  "Q1516" ,"Q17", "MC1",  "MC2", "Units", "Major" , "Level.y", "InstrID")
 ##
-analytic0 = alldata[ ,var.name]
-analytic0$mpeScore = as.numeric(gsub('%','',analytic0$PlacePer))
-### pre-math courses
-trig=c("Algebra 2 with Trigonometry", "Algebra and Trigonometry", "Functions, Statistics, and Trigonometry","Trigonometry")
-alg = c("Algebra 1 (including all Algebra 1 versions, such as Algebra 1A, 1B, etc.)", "Algebra 2", "Basic Math / Fundamentals of Arithmetic", "Business Math", "College Algebra", "Intermediate Algebra")
-precal=c("PreCalculus")
-calc=c("Advanced Math", "AP Calculus AB", "Calculus", "Calculus I" )
-stats=c("AP Statistics", "Statistics")
-geo=c("Geometry", "Integrated Math I or Integrated Algebra / Geometry", "IB Further Mathematics SL", "IB Mathematics SL")
-premath = analytic0$Class
-###
-premath[which(analytic0$Class %in% trig)]   = "trignom"
-premath[which(analytic0$Class %in% alg)]    = "algebra"
-premath[which(analytic0$Class %in% precal)] = "precalc"
-premath[which(analytic0$Class %in% calc)]  =  "calculs"
-premath[which(analytic0$Class %in% stats)] =  "statist"
-premath[which(analytic0$Class %in% geo)]  =   "geometr"
-analytic0$premath = premath
-#### math level: high school or college
-mathlevel = analytic0$Level.x
-mathlevel[which(mathlevel=="High School")] = "HighSchool"
-analytic0$premathlevel = mathlevel
-### Grade level
-analytic0$gradelevel = analytic0$Level.y
+analytic0 = alldata
 ### major classification
 prebus = c("Undergraduate - BA Languages & Cultures, Span/Pre-Business: Management BS", "Undergraduate - Pre-Business: Accounting BS", "Undergraduate - Pre-Business: Eco-Finance BS", "Undergraduate - Pre-Business: Management BS", "Undergraduate - Pre-Business: Management BS/Japanese Minor", "Undergraduate - Pre-Business: Mgmt BS - HR", "Undergraduate - Pre-Business:Marketing BS", "Undergraduate - Pre-Business:Marketing BS/Digital Marketing Minor", "Undergraduate - Pre-Business:Marketing BS/Minor in Media and Culture", "Undergraduate - Pre-International Business")
 psych=c("Undergraduate - BS Psychology", "Undergraduate - BS Psychology/American Sign Language Minor", "Undergraduate - BS Psychology/Biology MINOR", "Undergraduate - BS Psychology/Studio Art MINOR")
@@ -253,7 +246,7 @@ analytic0$majortype = majortype
 analytic0$CourseNum = substr(analytic0$Section, 11, 16)
 analytic0$SecteNum = substr(analytic0$Section, 18, 19)
 ## Final variable list
-final.var = c("ID","PlaceCtr", "ESL", "Q3", "Q45", "Q67",  "Q89", "Q10a2c", "Q10d2f" , "Q10g2i", "Q11", "Q1213", "Q14", "Q1516",  "Q17", "MC1" , "MC2" ,"Units" ,  "InstrID",  "mpeScore", "premath", "premathlevel",  "gradelevel", "majortype", "CourseNum","SecteNum")
+final.var = c("ID","PlaceCtr","Q30", "ESL", "Q3", "Q45", "Q67",  "Q89", "Q10a2c", "Q10d2f" , "Q10g2i", "Q11", "Q1213", "Q14", "Q1516",  "Q17", "MC1" , "MC2" ,"Units" ,  "InstrID",  "mpeScore", "Level", "majortype", "Course")
 analytic = analytic0[, final.var]
 analytic$examtotal = 100*(analytic$Q3 + analytic$Q45+analytic$Q67+analytic$Q89+ analytic$Q10a2c + analytic$Q10d2f + analytic$Q10g2i + analytic$Q11 +  analytic$Q1213 + analytic$Q14 + analytic$Q1516 + analytic$Q17 + analytic$MC1 + analytic$MC2)/176 
 analytic$MCtotal = analytic$MC1 + analytic$MC2
@@ -278,17 +271,17 @@ The following is a list of variables and their descriptions.
 
 7. `InstrID`: instructor's proxy ID.
 
-8. `mpeScore`: PPL score. <font color = "red">*\color{red}It will be simply called \textbf{PPL}.*</font>
+8. `mpeScore`: PPL score. <font color = "red">*\color{red}It will be simply called PPL.*</font>
 
-9. `premath`: highest level math course taken before MAT112/MAT113 (including those taken in high school and college).
+9. `Q30`: Whether a student took Q30 to meet the pre-requisite of MAT112 and MAT113.
 
-10. `majortype`: aggregated into three major categories: pre-business, psychology, and other majors. <font color = "red">*\color{red}It will be simply called \textbf{Major}.*</font>
+10. `majortype`: aggregated into three major categories: pre-business, psychology, and other majors. <font color = "red">*\color{red}It will be simply called Major.*</font>
 
-11. `CourseID`: either MAT112 or MAT113 (MAT112 is the baseline). <font color = "red">*\color{red} \textbf{net gain} = average exam of MAT113 - average exam of MAT112 \textbf{after other factors were adjusted}.*</font>
+11. `CourseID`: either MAT112 or MAT113 (MAT112 is the baseline). <font color = "red">*\color{red} net gain = average exam of MAT113 - average exam of MAT112  after other factors were adjusted.*</font>
 
-12. `SecteNum`: course section number.
+12. `PPLattempts`: number of times a student attempted the PPL exam.
 
-13. `examTotal`: percentiles of the total exam scores.  <font color = "red">*\color{red}It will be simply called \textbf{Exam}*.</font>
+13. `examTotal`: percentiles of the total exam scores.  <font color = "red">*\color{red}It will be simply called  Exam*.</font>
 
 14. `MCtotal`: total marks earned in MCQ.
 
@@ -304,10 +297,10 @@ Some comparisons between MAT112 and MAT113 using both descriptive visualizations
 The following table reports the means of PPL and the exam scores as well as 95% confidence intervals.
 
 ```{r}
-PPL.112=(analytic$mpeScore)[which(analytic$CourseNum=='MAT112')]
-PPL.113=(analytic$mpeScore)[which(analytic$CourseNum=='MAT113')]
-Exam.112=(100*(roster.exam$Total)/176)[which(roster.exam$Course==112)]
-Exam.113=(100*(roster.exam$Total)/176)[which(roster.exam$Course==113)]
+PPL.112=(analytic$mpeScore)[which(analytic$Course==112)]
+PPL.113=(analytic$mpeScore)[which(analytic$Course==113)]
+Exam.112=(analytic$examtotal)[which(analytic$Course==112)]
+Exam.113=(analytic$examtotal)[which(analytic$Course==113)]
 PPL112 = summary(PPL.112)
 PPL113 = summary(PPL.113)
 Exam112 = summary(Exam.112)
@@ -327,22 +320,25 @@ summary.table0$UCI.mu.95 = UCI.mu.95
 kable(summary.table0, caption="Five-number-summaries and confidence intervals of mean PPL and exam scores of MAT112 and MAT113 respectively.")
 ```
 
-> The 95% confidence intervals of the mean PPL scores of MAT 112 and MAT113 were given, respectively, by $[35.87, 38.46]$ and $[15.24, 50.60]$. The overlapped confidence intervals implied that the two means were not significantly different.
+> The raw difference of the averages of MAT112 and MAT113 is **62.3 - 53 = 9.3**. This difference involves contributions from factors such as PPL scores, Instructors, etc. We will make adjustments in the subsequent sections to `remove` effects confounding factors to get the *net difference* solely due to the two extra contact hours in MAT112.     
 
-> The 95% confidence intervals of the mean exam scores of MAT 112 and MAT113 were given, respectively, by $[58.96, 67.62]$ and $[52.54, 58.69]$. This implied that the mean exam scores of MAT112 and MAT113 cohorts were significantly different. The mean exam score of MAT112 was higher than that of MAT113.
+> The 95% confidence intervals of the mean PPL scores of MAT 112 and MAT113 were given, respectively, by $[36.48, 38.61]$ and $[15.49, 52.22]$. The overlapped confidence intervals implied that the two means were not significantly different.
+
+> The 95% confidence intervals of the mean exam scores of MAT 112 and MAT113 were given, respectively, by $[57.86, 65.77]$ and $[49.86, 56.17]$. This implied that the mean exam scores of MAT112 and MAT113 cohorts were significantly different. The mean exam score of MAT112 was higher than that of MAT113.
 
 To see more detailed *distributional* information about the distributions of PPL and exam scores in MAT112 and MAT113, we plotted the density curves of these distributions in the same graphic panel for visual comparison.
 
 
 ```{r fig.align='center', fig.width=4, fig.height=3, fig.pos="h",  fig.cap=" Distributions of PPL score and exam score between the two courses"}
 ## MPE scores
-ppl.112=analytic$mpeScore[which(analytic$CourseNum=="MAT112")]
-ppl.113=analytic$mpeScore[which(analytic$CourseNum=="MAT113")]
+ppl.112=analytic$mpeScore[which(analytic$Course==112)]
+ppl.113=analytic$mpeScore[which(analytic$Course==113)]
 ## Final Percentages
-exam.112=analytic$examtotal [which(analytic$CourseNum=="MAT112")]
-exam.113=analytic$examtotal [which(analytic$CourseNum=="MAT113")]
+exam.112=analytic$examtotal [which(analytic$Course==112)]
+exam.113=analytic$examtotal [which(analytic$Course==113)]
 
 plot(density(ppl.112), col="red", lwd=1, lty=2, xlim=c(0,100), main="Density distributions", xlab="PPL/Final Exam")
+
 lines(density(exam.112), col="red", lwd=2, lty=1)
 lines(density(ppl.113), col = "blue", lwd=1, lty=2)
 lines(density(exam.113), col="blue", lwd=2, lty=1)
@@ -361,7 +357,6 @@ The above figure indicates the difference between the distribution of the PPL an
 The 95% confidence interval of the difference between the mean PPL and exam scores of MAT112 and MAT113 students are given respectively in the following.
 
 ```{r comment = NA}
-
 LCL.PPL =(mean(ppl.113)-mean(ppl.112))-1.96*sqrt(var(ppl.113)/length(ppl.113)+var(ppl.112)/length(ppl.112))
 UCL.PPL =(mean(ppl.113)-mean(ppl.112))+1.96*sqrt(var(ppl.113)/length(ppl.113)+var(ppl.112)/length(ppl.112))
 ##
@@ -375,15 +370,14 @@ kable(CI.diff, caption = "95% confidence intervals of mean PPL and exam scores b
 ```
 
 
-
 ## Correlation between Exam and PPL Scores
 
 
 ```{r fig.align='center', fig.width=8, fig.height=3, fig.pos="ht", fig.cap="Correlation between PPL score and exam score."}
 n = dim(analytic)[1]
-id.112 = which(analytic$CourseNum=="MAT112")
+id.112 = which(analytic$Course==112)
 cols <- rep(rgb(84/255, 3/255, 171/255, 0.5),n)    # initialize cols to black
-cols[analytic$CourseNum=="MAT112"] <- rgb(11/255, 84/255, 71/255, 0.5) # change females to red
+cols[analytic$Course==112] <- rgb(11/255, 84/255, 71/255, 0.5) # change females to red
 ###
 set.seed(183491)
 par(mfrow=c(1,3))
@@ -393,21 +387,20 @@ plot(analytic$mpeScore, analytic$examtotal, pch=19, main="MAT112 and MAT113",
 legend("bottomright",c("MAT113","MAT112"),
        col=c(rgb(84/255, 3/255, 171/255, 0.5),rgb(11/255, 84/255, 71/255, 0.5)),
        pch=19, cex=0.7, bty = "n")
-text(90,95, "r = 0.082", col="red", cex = 0.9)
+text(90,95, "r = 0.136", col="red", cex = 0.9)
 ##
 plot(analytic$mpeScore[id.112], analytic$examtotal[id.112], pch=19, main="MAT112",
      xlim=c(0,100),ylim=c(0,100),
      col=cols[id.112], ylab="Converted Exam Score", xlab="PPL Score", las=1, cex = 1.2)
-text(90,95, "r = 0.027", col="red", cex = 0.9)
+text(90,95, "r = 0.115", col="red", cex = 0.9)
 ##
 plot(analytic$mpeScore[-id.112], analytic$examtotal[-id.112], pch=19, main="MAT113",
      xlim=c(0,100),ylim=c(0,100),
      col=cols[-id.112], ylab="Converted Exam Score", xlab="PPL Score", las=1, cex = 1.2)
-text(90,95, "r = 0.198", col="red", cex = 0.9)
+text(90,95, "r = 0.300", col="red", cex = 0.9)
 ```
 
 The above figure shows a weak correlation between PPL and exam scores. The strength of the correlation of the two types of scores in the MAT112 cohort was much weaker than that of MAT113. Furthermore, the two scores were almost uncorrelated in MAT112. This observation implies that one extra credit hour played a key role in improving the performance of the common exam.
-
 
 ## Regression Approach to Adjustments
 
@@ -415,11 +408,11 @@ We performed a simultaneous comparison of the performance for MAT112 and MAT113 
 
 $$\text{Exam} = \beta_0 + \beta_1 \times \text{PPL} + \beta_2\times \text{CourseID} + \epsilon.$$
 
-In the above linear model, $\beta_2$ measures the "true" difference between the mean exam scores of MAT113 and MAT112, i.e., the <font color="red">*\color{red}\textbf{net performance gain} = average exam score of MAT113 - average exam score of MAT112*</font>, after the effect of PPL being adjusted. This **net performance gain** will be further adjusted as more influential factors are added to the subsequent models.
+In the above linear model, $\beta_2$ measures the "true" difference between the mean exam scores of MAT113 and MAT112, i.e., the <font color="red">*\color{red}net performance gain = average exam score of MAT113 - average exam score of MAT112*</font>, after the effect of PPL being adjusted. This **net performance gain** will be further adjusted as more influential factors are added to the subsequent models.
 
 
 ```{r fig.align='center', fig.width=7, fig.height=3, fig.cap="Diagnostic plots of linear regression model: No significant violations."}
-m0 = lm(examtotal~mpeScore+CourseNum, data=analytic)
+m0 = lm(examtotal~mpeScore+factor(Course), data=analytic)
 par(mfrow=c(1,2))
 plot(m0, pch=21, col="navy", cex = 0.8, which=1:2)
 ```
@@ -434,7 +427,9 @@ kable(reg.output, caption="Inferential results of regression model")
 The above inferential table shows that
 
 * The PPL scores were positively correlated to the exam scores.  
-* The negative coefficient $-9.34$ indicated that the mean exam score of MAT113 was 9.37 **lower than** that of MAT112 for any given PPL scores.
+* The negative coefficient $-13.7$ indicated that, <font color = "red">*\color{red}for students with the SAME PPL score,*</font> the mean exam score of MAT113 students was 13.7 **lower than** that of MAT112 students.
+
+In other words, the <font color = "red">*net performance gain*</font> of the extra contact hours was 13.7 points (out of 100) after the PPL was adjusted.
 
 
 ## Instructor Effect
@@ -442,19 +437,19 @@ The above inferential table shows that
 In general, individual instructor's delivery methods influence exam scores to various degrees. We examined the distributions of the common exam grades in MAT112 and MAT113 taught by the same instructor in this subsection for potential differences to see whether to include InstrID in the model to estimate the "net performance gain" more accurately.
 
 ```{r fig.align='center', fig.width=7, fig.height=3, fig.pos="h",  fig.cap="Difference by individual instructor: Instructors A and B"}
-Instr1.112 = 100*roster.exam$Total[which(roster.exam$Course==112 & roster.exam$InstrID==1)]/176
-Instr1.113 = 100*roster.exam$Total[which(roster.exam$Course==113 & roster.exam$InstrID==1)]/176
-Instr2.112 = 100*roster.exam$Total[which(roster.exam$Course==112 & roster.exam$InstrID==2)]/176
-Instr2.113 = 100*roster.exam$Total[which(roster.exam$Course==113 & roster.exam$InstrID==2)]/176
-Instr3.112 = 100*roster.exam$Total[which(roster.exam$Course==112 & roster.exam$InstrID==3)]/176
-Instr3.113 = 100*roster.exam$Total[which(roster.exam$Course==113 & roster.exam$InstrID==3)]/176
-Instr4.112 = 100*roster.exam$Total[which(roster.exam$Course==112 & roster.exam$InstrID==4)]/176
-Instr4.113 = 100*roster.exam$Total[which(roster.exam$Course==113 & roster.exam$InstrID==4)]/176
+Instr1.112 = analytic$examtotal[which(analytic$Course==112 & analytic$InstrID==1)]
+Instr1.113 = analytic$examtotal[which(analytic$Course==113 & analytic$InstrID==1)]
+Instr2.112 = analytic$examtotal[which(analytic$Course==112 & analytic$InstrID==2)] 
+Instr2.113 = analytic$examtotal[which(analytic$Course==113 & analytic$InstrID==2)] 
+Instr3.112 = analytic$examtotal[which(analytic$Course==112 & analytic$InstrID==3)] 
+Instr3.113 = analytic$examtotal[which(analytic$Course==113 & analytic$InstrID==3)] 
+Instr4.112 = analytic$examtotal[which(analytic$Course==112 & analytic$InstrID==4)] 
+Instr4.113 = analytic$examtotal[which(analytic$Course==113 & analytic$InstrID==4)] 
 par(mfrow=c(1,2))
 plot(density(Instr1.112), xlim=c(0,100), ylim=c(0, 0.035), xlab="Exam Grade", col="red", lty=1, lwd=1, main="Instructor A")
 lines(density(Instr1.113),col="blue", lty=1, lwd=1)
 legend("topleft", c("112", "113"), col=c("red","blue"), lty=c(1,1), lwd=c(1,1), bty="n", cex=0.7)
-plot(density(Instr2.112), xlim=c(0,100),ylim=c(0, 0.035),  xlab="Exam Grade", col="red", lty=1, lwd=1, main="Instructor B")
+plot(density(Instr2.112), xlim=c(0,100),ylim=c(0, 0.045),  xlab="Exam Grade", col="red", lty=1, lwd=1, main="Instructor B")
 lines(density(Instr2.113),col="blue", lty=1, lwd=1)
 legend("topleft", c("112", "113"), col=c("red","blue"), lty=c(1,1), lwd=c(1,1), bty="n", cex=0.7)
 
@@ -488,23 +483,23 @@ Adding corresponding PPL density curves to the above figures allows comparisons 
 
 ```{r fig.align='center', fig.width=7, fig.height=3, fig.pos="h", fig.cap="Difference by individual instructor: Instructors 1 and 2"}
 ### exam grade
-Instr1.112 = analytic$examtotal [which(analytic$CourseNum=="MAT112" & analytic$InstrID==1)]
-Instr1.113 = analytic$examtotal [which(analytic$CourseNum=="MAT113" & analytic$InstrID==1)]
-Instr2.112 = analytic$examtotal [which(analytic$CourseNum=="MAT112" & analytic$InstrID==2)]
-Instr2.113 = analytic$examtotal [which(analytic$CourseNum=="MAT113" & analytic$InstrID==2)]
-Instr3.112 = analytic$examtotal [which(analytic$CourseNum=="MAT112" & analytic$InstrID==3)]
-Instr3.113 = analytic$examtotal [which(analytic$CourseNum=="MAT113" & analytic$InstrID==3)]
-Instr4.112 = analytic$examtotal [which(analytic$CourseNum=="MAT112" & analytic$InstrID==4)]
-Instr4.113 = analytic$examtotal [which(analytic$CourseNum=="MAT113" & analytic$InstrID==4)]
+Instr1.112 = analytic$examtotal [which(analytic$Course==112 & analytic$InstrID==1)]
+Instr1.113 = analytic$examtotal [which(analytic$Course==113 & analytic$InstrID==1)]
+Instr2.112 = analytic$examtotal [which(analytic$Course==112 & analytic$InstrID==2)]
+Instr2.113 = analytic$examtotal [which(analytic$Course==113 & analytic$InstrID==2)]
+Instr3.112 = analytic$examtotal [which(analytic$Course==112 & analytic$InstrID==3)]
+Instr3.113 = analytic$examtotal [which(analytic$Course==113 & analytic$InstrID==3)]
+Instr4.112 = analytic$examtotal [which(analytic$Course==112 & analytic$InstrID==4)]
+Instr4.113 = analytic$examtotal [which(analytic$Course==113 & analytic$InstrID==4)]
 ### PLL scores
-Instr1.112ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT112" & analytic$InstrID==1)]
-Instr1.113ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT113" & analytic$InstrID==1)]
-Instr2.112ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT112" & analytic$InstrID==2)]
-Instr2.113ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT113" & analytic$InstrID==2)]
-Instr3.112ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT112" & analytic$InstrID==3)]
-Instr3.113ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT113" & analytic$InstrID==3)]
-Instr4.112ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT112" & analytic$InstrID==4)]
-Instr4.113ppl = analytic$mpeScore [which(analytic$CourseNum=="MAT113" & analytic$InstrID==4)]
+Instr1.112ppl = analytic$mpeScore [which(analytic$Course==112 & analytic$InstrID==1)]
+Instr1.113ppl = analytic$mpeScore [which(analytic$Course==113 & analytic$InstrID==1)]
+Instr2.112ppl = analytic$mpeScore [which(analytic$Course==112 & analytic$InstrID==2)]
+Instr2.113ppl = analytic$mpeScore [which(analytic$Course==113 & analytic$InstrID==2)]
+Instr3.112ppl = analytic$mpeScore [which(analytic$Course==112 & analytic$InstrID==3)]
+Instr3.113ppl = analytic$mpeScore [which(analytic$Course==113 & analytic$InstrID==3)]
+Instr4.112ppl = analytic$mpeScore [which(analytic$Course==112 & analytic$InstrID==4)]
+Instr4.113ppl = analytic$mpeScore [which(analytic$Course==113 & analytic$InstrID==4)]
 ###
 par(mfrow=c(1,2))
 plot(density(Instr1.112), xlim=c(0,100), ylim=c(0, 0.085), xlab="PPL/Final Exam", col="red", lty=1, lwd=2, main="Instructor 1")
@@ -576,7 +571,7 @@ The next residual and QQ plots do not show any serious violation of the assumpti
 
 
 ```{r fig.align='center', fig.width=7, fig.height=4, fig.pos = "h", fig.cap="Diagnostic plots of linear regression model: No significant violations."}
-m1 = lm(examtotal~mpeScore+ factor(InstrID) + CourseNum, data=analytic)
+m1 = lm(examtotal~mpeScore+ factor(InstrID) + factor(Course), data=analytic)
 par(mfrow=c(1,2))
 plot(m1, pch=21, col="navy", cex = 0.8, which=1:2)
 ```
@@ -587,13 +582,76 @@ reg.output=summary(m1)$coefficients
 kable(reg.output, caption="Inferential results of regression model")
 ```
 
-The above shows that both PPL and Instructor effects are significant as expected. After additional adjustments with the instructor effect, the <font color = "red">*\color{red}\textit{net performance gain}*</font> increased from the previous 9.34 to 11.22.
+The above shows that both PPL and Instructor effects are significant as expected. After additional adjustments with the instructor effect, the <font color = "red">*\color{red} net performance gain*</font> increased from the previous 13.7 to 13.9.
+
+
+
+
+
+## <font color = "red">*\color{red} Additional Baseline Analyses: Q30*</font>
+
+PPL scores we used to place students in different courses using the following cut-offs:
+
+* Students with a PPL score >= 45 are place to MAT113
+
+* Students with a PPL score < 30 are placed to Q30.
+
+* Students with a PPL score above 30 are placed in MAT112
+
+In the current study sample, 50 students MAT113 took MAT Q30. No MAT112 students took MAT Q30. Therefore, Q30 should not be included in the regression model. However, among 50 Q30 students, 23 of them scored between 30 and 45 (exclusive) in the PPL. The next table shows the distributions of the exam grades of these 23 students and that of MAT112 students.
+
+
+```{r fig.align='center', fig.width=5, fig.height=4, fig.cap="Distributions of various distributions related to PPL scores of Q30 students."}
+MAT113.PPL.less30 = analytic$mpeScore[which(analytic$Course==113 & analytic$mpeScore<30)]
+MAT113.PPL.30to45 = analytic$examtotal[which(analytic$Course==113 & analytic$mpeScore<45 & analytic$mpeScore>30)]
+MAT112.exam = analytic$examtotal[which(analytic$Course==112)]
+Q30.exam = analytic$examtotal[which(analytic$Course==113 & analytic$mpeScore<45)]
+##
+plot(density(MAT113.PPL.less30), xlim=c(0,100), main="Comparisons related to Q30",
+     xlab="Exam Score", ylab="Density", lty=2, lwd=1, col="darkcyan")
+lines(density(MAT112.exam), lty=1, lwd=2, col="red")
+lines(density(MAT113.PPL.30to45), lty=3, lwd=2,  col="purple")
+lines(density(Q30.exam), lty=1, lwd=3,  col="blue")
+
+legend("topright", c("Q30: PPL Score < 30", "MAT112 (No Q30 Students)", "Q30:PPL betwee 30 and 45", "All Q30 Students in MAT113"),
+       col=c("darkcyan", "red", "purple","blue" ), lty=c(2,1,2,1),
+       bty="n", cex=0.8)
+```
+
+The above figure shows several similar patterns that were reported earlier except for a subgroup of Q30 students in MAT113 who scored between 30 and 45 in the PPL. <font color = "red">*\color{red}The above dotted purple curve represents the distribution of exam of MAT113 students who took Q30 and scored between 30 and 45 in the PPL. If these students were placed in MAT112 directly without taking MAT Q30, they would have scored better in the exam (similar to the red curve).*</font>
+
+## <font color = "red">*\color{red} Additional Baseline Analyses: Attempts of PPL*</font>
+
+Among 278 participating students in the study, 3 of them attempted the PPL three times and 27 attempted two times. We want to compare relevant distributions of the grades of the exam to see whether to include this information in the regression analysis. To avoid sparse categories, we define a new variable *PPLattempt* taking values 1 for a single attempt and 2 for two or more attempts.  
+
+
+```{r}
+PPL.attempt = analytic$PlaceCtr
+attempt.id = which(analytic$PlaceCtr==3)
+PPL.attempt[attempt.id] = 2
+analytic$Attempts = PPL.attempt
+Attempts.course = as.matrix(table(analytic$Attempts, analytic$Course))
+colnames(Attempts.course)=c("MAT112", "MAT113")
+rownames(Attempts.course)=c("1-Attempt", "2-Attempts")
+kable(Attempts.course, caption = "The distribution of PPL attempts by course")
+```
+
+Since 24 of 30 students who attempted PPL multiple times were in MAT113, It is inappropriate to include *PPLattempts* in the regression model due to this imbalanced distribution. The following descriptive tables also shows insignificance of *PPLattempt*.
+
+```{r}
+attempt.id = which(analytic$Attempts==1)
+attempt01 = summary(analytic$examtotal[attempt.id])
+attempt02 = summary(analytic$examtotal[-attempt.id])
+summary.table = rbind(attempt01=attempt01, attempt02=attempt02)
+kable(summary.table, caption="Exam grade distribution of students by PPLattempts.")
+```
+
 
 ## Summary
 
 *There is solid evidence to support the hypothesis that MAT112 students outperformed MAT113 students after the potential effects of PPL and instructor being adjusted.* 
 
-As observed earlier, PPL has a weak positive correlation with performance in the exam. within each instructor, one mark increment in the average PPL led to a 0.23 increase in the average exam for every instructor. 
+As observed earlier, PPL has a weak positive correlation with performance in the exam. within each instructor, one mark increment in the average PPL led to a 0.37 increase in the average exam for every instructor. 
 
 The individual instructors' contribution to the difference of averages between MAT112 and MAT113 differs vastly. The comparison between instructors is not part of the goal of this study.
 
@@ -607,21 +665,20 @@ Several other demographic variables are also available in the data. We performed
 The sample had 53% of students from pre-business programs and 30% from psychology programs. We classified all participating students into three categories: pre-business, psychology, and other. The following density curves represent the distributions of PPL and exam scores by majors.
 
 ```{r fig.align='center', fig.width=8, fig.height=3, fig.pos="h", fig.cap="Potential Difference adjusted by majors and PPL scores "}
+otherPPL112 = analytic$mpeScore[which(analytic$majortype=="other" & analytic$Course==112)]
+otherExam112 = analytic$examtotal[which(analytic$majortype=="other" & analytic$Course==112)]
+otherPPL113 = analytic$mpeScore[which(analytic$majortype=="other" & analytic$Course==113)]
+otherExam113 = analytic$examtotal[which(analytic$majortype=="other" & analytic$Course==113)]
 ###
-otherPPL112 = analytic$mpeScore[which(analytic$majortype=="other" & analytic$CourseNum=="MAT112")]
-otherExam112 = analytic$examtotal[which(analytic$majortype=="other" & analytic$CourseNum=="MAT112")]
-otherPPL113 = analytic$mpeScore[which(analytic$majortype=="other" & analytic$CourseNum=="MAT113")]
-otherExam113 = analytic$examtotal[which(analytic$majortype=="other" & analytic$CourseNum=="MAT113")]
+prebusPPL112= analytic$mpeScore[which(analytic$majortype=="prebus" & analytic$Course==112)]
+prebusExam112= analytic$examtotal[which(analytic$majortype=="prebus" & analytic$Course==112)]
+prebusPPL113= analytic$mpeScore[which(analytic$majortype=="prebus" & analytic$Course==113)]
+prebusExam113= analytic$examtotal[which(analytic$majortype=="prebus" & analytic$Course==113)]
 ###
-prebusPPL112= analytic$mpeScore[which(analytic$majortype=="prebus" & analytic$CourseNum=="MAT112")]
-prebusExam112= analytic$examtotal[which(analytic$majortype=="prebus" & analytic$CourseNum=="MAT112")]
-prebusPPL113= analytic$mpeScore[which(analytic$majortype=="prebus" & analytic$CourseNum=="MAT113")]
-prebusExam113= analytic$examtotal[which(analytic$majortype=="prebus" & analytic$CourseNum=="MAT113")]
-###
-psychPPL112 = analytic$mpeScore[which(analytic$majortype=="psych" & analytic$CourseNum=="MAT112")]
-psychExam112 = analytic$examtotal[which(analytic$majortype=="psych" & analytic$CourseNum=="MAT112")]
-psychPPL113 = analytic$mpeScore[which(analytic$majortype=="psych" & analytic$CourseNum=="MAT113")]
-psychExam113 = analytic$examtotal[which(analytic$majortype=="psych" & analytic$CourseNum=="MAT113")]
+psychPPL112 = analytic$mpeScore[which(analytic$majortype=="psych" & analytic$Course==112)]
+psychExam112 = analytic$examtotal[which(analytic$majortype=="psych" & analytic$Course==112)]
+psychPPL113 = analytic$mpeScore[which(analytic$majortype=="psych" & analytic$Course==113)]
+psychExam113 = analytic$examtotal[which(analytic$majortype=="psych" & analytic$Course==113)]
 ##
 par(mfrow=c(1,3))
 ##
@@ -655,7 +712,7 @@ The shapes of the density curves of the exam grades of the two major cohorts wer
 
 
 ```{r fig.align='center', fig.width=7, fig.height=3.5, fig.pos = "h", fig.cap="Diagnostic plots of linear regression model: No significant violations."}
-m2 = lm(examtotal~mpeScore+ factor(InstrID) + majortype + CourseNum, data=analytic)
+m2 = lm(examtotal~mpeScore+ factor(InstrID) + majortype + Course, data=analytic)
 par(mfrow=c(1,2))
 plot(m2, pch=21, col="navy", cex = 0.8, which=1:2)
 ```
@@ -678,16 +735,15 @@ There are 24 ESL students in this study (about 10% of the total participants). T
 
 ```{r fig.align='center', fig.width=7, fig.height=4, fig.cap="Potential Difference adjusted by ESL and PPL scores "}
 ###
-ESLPPL112 = analytic$mpeScore[which(analytic$ESL=="Yes" & analytic$CourseNum=="MAT112")]
-ESLExam112 = analytic$examtotal[which(analytic$ESL=="Yes" & analytic$CourseNum=="MAT112")]
-ESLPPL113 = analytic$mpeScore[which(analytic$ESL=="Yes" & analytic$CourseNum=="MAT113")]
-ESLExam113 = analytic$examtotal[which(analytic$ESL=="Yes" & analytic$CourseNum=="MAT113")]
+ESLPPL112 = analytic$mpeScore[which(analytic$ESL=="Yes" & analytic$Course==112)]
+ESLExam112 = analytic$examtotal[which(analytic$ESL=="Yes" & analytic$Course==112)]
+ESLPPL113 = analytic$mpeScore[which(analytic$ESL=="Yes" & analytic$Course==113)]
+ESLExam113 = analytic$examtotal[which(analytic$ESL=="Yes" & analytic$Course==113)]
 ###
-NonESLPPL112= analytic$mpeScore[which(analytic$ESL=="No" & analytic$CourseNum=="MAT112")]
-NonESLExam112= analytic$examtotal[which(analytic$ESL=="No" & analytic$CourseNum=="MAT112")]
-NonESLPPL113= analytic$mpeScore[which(analytic$ESL=="No" & analytic$CourseNum=="MAT113")]
-NonESLExam113= analytic$examtotal[which(analytic$ESL=="No" & analytic$CourseNum=="MAT113")]
-
+NonESLPPL112= analytic$mpeScore[which(analytic$ESL=="No" & analytic$Course==112)]
+NonESLExam112= analytic$examtotal[which(analytic$ESL=="No" & analytic$Course==112)]
+NonESLPPL113= analytic$mpeScore[which(analytic$ESL=="No" & analytic$Course==113)]
+NonESLExam113= analytic$examtotal[which(analytic$ESL=="No" & analytic$Course==113)]
 ##
 par(mfrow=c(1,2))
 ##
@@ -711,24 +767,24 @@ legend("topright", c("PPL112", "Exam112","PPL113", "Exam113"),
 
 ```
 
-For ESL students, 60% of MAT112 students earned 60 or above while 21% of MAT113 students earned 60  or above. The mean PPL scores of both MAT112 and MAT113 are close to each other but the MAT112 cohort had a significantly small variance compared to the MAT113 cohort. <font color="red">*\color{red}\textit{The distributions of PPL and exam grades for both MAT112 and MAT113 were essentially the same as the overall distributions as depicted in Figure 1.}*</font>
+For ESL students, 60% of MAT112 students earned 60 or above while 21% of MAT113 students earned 60  or above. The mean PPL scores of both MAT112 and MAT113 are close to each other but the MAT112 cohort had a significantly small variance compared to the MAT113 cohort. <font color="red">*\color{red}The distributions of PPL and exam grades for both MAT112 and MAT113 were essentially the same as the overall distributions as depicted in Figure 1.*</font>
 
 
 
 ```{r}
-ESL112 = summary(analytic$examtotal[which(analytic$ESL=="Yes" & analytic$CourseNum=="MAT112")])
-ESL113 = summary(analytic$examtotal[which(analytic$ESL=="Yes" & analytic$CourseNum=="MAT113")])
-nonESL112 = summary(analytic$examtotal[which(analytic$ESL=="No" & analytic$CourseNum=="MAT112")])
-nonESL113 = summary(analytic$examtotal[which(analytic$ESL=="No" & analytic$CourseNum=="MAT113")])
+ESL112 = summary(analytic$examtotal[which(analytic$ESL=="Yes" & analytic$Course==112)])
+ESL113 = summary(analytic$examtotal[which(analytic$ESL=="Yes" & analytic$Course==113)])
+nonESL112 = summary(analytic$examtotal[which(analytic$ESL=="No" & analytic$Course==112)])
+nonESL113 = summary(analytic$examtotal[which(analytic$ESL=="No" & analytic$Course==113)])
 ESL = as.data.frame(rbind(ESL112 = ESL112, ESL113 = ESL113,nonESL112 = nonESL112, nonESL113 = nonESL113))
 kable(ESL, caption = "Five-number-summary of exam grades of students in MAT112 and MAT113 respectively.")
 ```
 
-ESL students in MAT112 outperformed their counterparts in MAT113. The same pattern was observed in nonESL students. However, Among MAT112 students, nonESL students outperformed ESL students, the same pattern was also observed in MAT113. These observations could affect the actual <font color="red">*\color{red}\textit{net performance gain}*</font>. Therefore, ESL should be added to the previous regression model.
+ESL students in MAT112 outperformed their counterparts in MAT113. The same pattern was observed in nonESL students. However, Among MAT112 students, nonESL students outperformed ESL students, the same pattern was also observed in MAT113. These observations could affect the actual <font color="red">*\color{red}net performance gain*</font>. Therefore, ESL should be added to the previous regression model.
 
 
 ```{r fig.align='center', fig.width=7, fig.height=3.5, fig.pos = "h", fig.cap="Diagnostic plots of linear regression model: No significant violations."}
-m3 = lm(examtotal~mpeScore+ factor(InstrID) + ESL + CourseNum, data=analytic)
+m3 = lm(examtotal~mpeScore+ factor(InstrID) + ESL + Course, data=analytic)
 par(mfrow=c(1,2))
 plot(m3, pch=21, col="navy", cex = 0.8, which=1:2)
 ```
@@ -741,7 +797,7 @@ kable(reg.output, caption="Inferential results of regression model: adjusted wit
 ```
 
 
-The above table shows the statistical significance of ESL. After being adjusted with ESL, the <font color="red">*\color{red}\textit{net performance gain}*</font> increased slightly from 11.22 to 11.48. The small change in <font color="red">*\color{red}\textit{net performance gain}*</font> is due to the small number of ESL students in the study.
+The above table shows the statistical insignificance of ESL (p value = 0.076). After being adjusted with ESL, the <font color="red">*\color{red}net performance gain*</font> did not change much. This <font color="red">*\color{red}net performance gain*</font> is due to the small number of ESL students in the study.
 
 
 ## Grade Level
@@ -756,15 +812,15 @@ Since almost all MAT112 students were freshmen, grade level will *not* be includ
 
 ```{r fig.align='center', fig.width=7, fig.height=4, fig.cap="Potential Difference adjusted by grade level (freshman and sophomore) and PPL scores "}
 ###
-FreshmanPPL112 = analytic$mpeScore[which(analytic$gradelevel=="Freshman" & analytic$CourseNum=="MAT112")]
-FreshmanExam112 = analytic$examtotal[which(analytic$gradelevel=="Freshman" & analytic$CourseNum=="MAT112")]
-FreshmanPPL113 = analytic$mpeScore[which(analytic$gradelevel=="Freshman" & analytic$CourseNum=="MAT113")]
-FreshmanExam113 = analytic$examtotal[which(analytic$gradelevel=="Freshman" & analytic$CourseNum=="MAT113")]
+FreshmanPPL112 = analytic$mpeScore[which(analytic$Level=="Freshman" & analytic$Course==112)]
+FreshmanExam112 = analytic$examtotal[which(analytic$Level=="Freshman" & analytic$Course==112)]
+FreshmanPPL113 = analytic$mpeScore[which(analytic$Level=="Freshman" & analytic$Course==113)]
+FreshmanExam113 = analytic$examtotal[which(analytic$Level=="Freshman" & analytic$Course==113)]
 ###
-SophomorePPL112= analytic$mpeScore[which(analytic$gradelevel=="Sophomore" & analytic$CourseNum=="MAT112")]
-SophomoreExam112= analytic$examtotal[which(analytic$gradelevel=="Sophomore" & analytic$CourseNum=="MAT112")]
-SophomorePPL113= analytic$mpeScore[which(analytic$gradelevel=="Sophomore" & analytic$CourseNum=="MAT113")]
-SophomoreExam113= analytic$examtotal[which(analytic$gradelevel=="Sophomore" & analytic$CourseNum=="MAT113")]
+SophomorePPL112= analytic$mpeScore[which(analytic$Level=="Sophomore" & analytic$Course==112)]
+SophomoreExam112= analytic$examtotal[which(analytic$Level=="Sophomore" & analytic$Course==112)]
+SophomorePPL113= analytic$mpeScore[which(analytic$Level=="Sophomore" & analytic$Course==113)]
+SophomoreExam113= analytic$examtotal[which(analytic$Level=="Sophomore" & analytic$Course==113)]
 
 ##
 par(mfrow=c(1,2))
@@ -804,33 +860,33 @@ To provide a starting point for potential exploration, we provide only some grap
 
 ```{r fig.align='center', fig.width=8, fig.height=3, fig.cap="Topic-specific difference between MAT112 and MAT113: Overall"}
 ### Instr: #1
-Q3M112 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==112)]
-Q3M113 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==113)]
-Q45M112 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==112)]
-Q45M113 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==113)]
-Q67M112 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==112)]
-Q67M113 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==113)]
-Q89M112 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==112)]
-Q89M113 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==113)]
+Q3M112 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==112)]
+Q3M113 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==113)]
+Q45M112 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==112)]
+Q45M113 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==113)]
+Q67M112 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==112)]
+Q67M113 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==113)]
+Q89M112 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==112)]
+Q89M113 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==113)]
 ###
-Q10a2cM112 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==112)]
-Q10a2cM113 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==113)]
-Q10d2fM112 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==112)]
-Q10d2fM113 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==113)]
-Q10g2iM112 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==112)]
-Q10g2iM113 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==113)]
-Q11M112 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==112)]
-Q11M113 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==113)]
+Q10a2cM112 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==112)]
+Q10a2cM113 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==113)]
+Q10d2fM112 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==112)]
+Q10d2fM113 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==113)]
+Q10g2iM112 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==112)]
+Q10g2iM113 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==113)]
+Q11M112 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==112)]
+Q11M113 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==113)]
 ###
 ###
-Q1213M112 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==112)]
-Q1213M113 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==113)]
-Q14M112 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==112)]
-Q14M113 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==113)]
-Q1516M112 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==112)]
-Q1516M113 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==113)]
-Q17M112 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==112)]
-Q17M113 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==113)]
+Q1213M112 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==112)]
+Q1213M113 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==113)]
+Q14M112 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==112)]
+Q14M113 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==113)]
+Q1516M112 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==112)]
+Q1516M113 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==113)]
+Q17M112 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==112)]
+Q17M113 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==113)]
 ##########################
 par(mfrow=c(1,3))
 ##########################   plot #1: 
@@ -879,8 +935,8 @@ legend("topright", "Overall", bty="n")
 To help read the above density curves, we pick the density distributions of Q89 in MAT112 and MAT113 from the left panel of the above figure to explain the distributional difference between to two exam grades.
 
 ```{r fig.align='center', fig.width=3.5, fig.height=3.5, fig.pos="h", fig.cap="Topic-specific difference between MAT112 and MAT113: Questions 8 and 9."}
-Q89M112 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==112)]
-Q89M113 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==113)]
+Q89M112 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==112)]
+Q89M113 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==113)]
 ##
 ##########################   plot #1: 
 plot(density(Q89M112), col="purple4", lty=1, lwd=3,  xlim=c(0,100), ylim=c(-0.0015,0.025), 
@@ -893,20 +949,20 @@ legend("topleft", c("M112-Q89", "M113-Q89"), col=c("purple4","purple4"),
        lty=c(1,2), lwd=c(3,2), bty="n", cex=0.7)
 #abline(v=c(37,75,87))
 #arrows(37,0,37,0.0045, col="blue")
-segments(37,0,37,0.0046, col="red")
-segments(75,0,75,0.0088, col="red")
-segments(87,0,87,0.0122, col="red")
-points(c(37, 37, 75, 75, 87, 87), c(0, 0.0046, 0, 0.0088, 0, 0.0122), pch=20, col="red", cex = 0.8)
-text(c(37,75,87), rep(-0.0015,3), c("37", "75", "87"), col="red", cex= 0.7)
+segments(34,0,34,0.0046, col="red")
+segments(80,0,80,0.0095, col="red")
+segments(87,0,87,0.012, col="red")
+points(c(34, 34, 80, 80, 87, 87), c(0, 0.0046, 0, 0.0095, 0, 0.012), pch=20, col="red", cex = 0.8)
+text(c(34,80,87), rep(-0.0015,3), c("34", "80", "87"), col="red", cex= 0.7)
 ```
 
 
 As stated earlier, the grades Q89 were converted to the percentile. The above figure shows that,  
 
-* the proportion of students who earned 37 or less in MAT112 was higher than that in MAT113
+* the proportion of students who earned 34 or less in MAT112 was higher than that in MAT113
 * the proportion of students who earned 87 or more in MAT112 was lower than that in MAT113
-* the proportion of students who earned between 75 and 87 in MAT112 was about the same as that in MAT113
-* the proportion of students who earned between 37 and 85 in MAT112 was lower than that in MAT113
+* the proportion of students who earned between 80 and 87 in MAT112 was about the same as that in MAT113
+* the proportion of students who earned between 34 and 80 in MAT112 was lower than that in MAT113
 
 The density curves of grades of individual questions in the above figures and the following instructor-specific density distributions can be similarly interpreted.
 
@@ -919,33 +975,33 @@ The next four figures show the density curves of distributions of grades of indi
 
 ```{r fig.align='center', fig.width=8, fig.height=3, fig.cap="Topic-specific difference between MAT112 and MAT113: Instructor A"}
 ### Instr: #1
-Q3M112.1 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q3M113.1 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q45M112.1 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q45M113.1 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q67M112.1 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q67M113.1 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q89M112.1 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q89M113.1 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
+Q3M112.1 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q3M113.1 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q45M112.1 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q45M113.1 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q67M112.1 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q67M113.1 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q89M112.1 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q89M113.1 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==113 & analytic$InstrID==1)]
 ###
-Q10a2cM112.1 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q10a2cM113.1 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q10d2fM112.1 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q10d2fM113.1 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q10g2iM112.1 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q10g2iM113.1 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q11M112.1 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q11M113.1 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
+Q10a2cM112.1 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q10a2cM113.1 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q10d2fM112.1 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q10d2fM113.1 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q10g2iM112.1 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q10g2iM113.1 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q11M112.1 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q11M113.1 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==113 & analytic$InstrID==1)]
 ###
 ###
-Q1213M112.1 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q1213M113.1 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q14M112.1 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q14M113.1 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q1516M112.1 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q1516M113.1 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
-Q17M112.1 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==112 & roster.exam$InstrID==1)]
-Q17M113.1 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==113 & roster.exam$InstrID==1)]
+Q1213M112.1 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q1213M113.1 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q14M112.1 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q14M113.1 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q1516M112.1 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q1516M113.1 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==113 & analytic$InstrID==1)]
+Q17M112.1 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==112 & analytic$InstrID==1)]
+Q17M113.1 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==113 & analytic$InstrID==1)]
 ##########################
 par(mfrow=c(1,3))
 ##########################   plot #1: 
@@ -984,10 +1040,10 @@ lines(density(Q1516M112.1), col="darkcyan", lty=1, lwd=2)
 lines(density(Q1516M113.1), col="darkcyan", lty=2, lwd=1)
 lines(density(Q17M112.1), col="purple4", lty=1, lwd=2)
 lines(density(Q17M113.1), col="purple4", lty=2, lwd=1)
-legend("topleft", c("M112-Q1213", "M113-Q1213","M112-Q14", "M113-Q14","M112-Q1516", "M113-Q1516","M112-Q17", "M113-Q17"),
+legend("topright", c("M112-Q1213", "M113-Q1213","M112-Q14", "M113-Q14","M112-Q1516", "M113-Q1516","M112-Q17", "M113-Q17"),
        col=c("red","red","blue","blue","darkcyan","darkcyan","purple4","purple4"), lty=c(1,2,1,2,1,2,1,2),
        lwd=c(2,1,2,1,2,1,2,1), bty="n", cex=0.7)
-legend("topright", "Instructor A", bty="n")
+legend("topleft", "Instructor A", bty="n")
 ###
 ```
 
@@ -996,34 +1052,33 @@ legend("topright", "Instructor A", bty="n")
 ```{r fig.align='center', fig.width=8, fig.height=3, fig.cap="Topic-specific difference between MAT112 and MAT113: Instructor B"}
 ###############
 #### Instr #2
-Q3M112.2 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q3M113.2 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q45M112.2 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q45M113.2 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q67M112.2 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q67M113.2 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q89M112.2 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q89M113.2 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
+Q3M112.2 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q3M113.2 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q45M112.2 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q45M113.2 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q67M112.2 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q67M113.2 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q89M112.2 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q89M113.2 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==113 & analytic$InstrID==2)]
 
 ###
-Q10a2cM112.2 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q10a2cM113.2 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q10d2fM112.2 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q10d2fM113.2 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q10g2iM112.2 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q10g2iM113.2 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q11M112.2 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q11M113.2 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
+Q10a2cM112.2 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q10a2cM113.2 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q10d2fM112.2 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q10d2fM113.2 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q10g2iM112.2 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q10g2iM113.2 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q11M112.2 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q11M113.2 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==113 & analytic$InstrID==2)]
 ###
-Q1213M112.2 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q1213M113.2 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q14M112.2 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q14M113.2 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q1516M112.2 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q1516M113.2 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-Q17M112.2 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==112 & roster.exam$InstrID==2)]
-Q17M113.2 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==113 & roster.exam$InstrID==2)]
-
+Q1213M112.2 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q1213M113.2 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q14M112.2 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q14M113.2 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q1516M112.2 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q1516M113.2 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==113 & analytic$InstrID==2)]
+Q17M112.2 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==112 & analytic$InstrID==2)]
+Q17M113.2 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==113 & analytic$InstrID==2)]
 ##########################
 par(mfrow=c(1,3))
 ##########################   
@@ -1077,33 +1132,34 @@ legend("topright", "Instructor B", bty="n")
 ```{r fig.align='center', fig.width=8, fig.height=3, fig.pos="h", fig.cap="Topic-specific difference between MAT112 and MAT113: Instructor C"}
 ########################
 ### Instr #3
-Q3M112.3 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q3M113.3 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q45M112.3 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q45M113.3 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q67M112.3 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q67M113.3 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q89M112.3 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q89M113.3 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
+Q3M112.3 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q3M113.3 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q45M112.3 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q45M113.3 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q67M112.3 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q67M113.3 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q89M112.3 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q89M113.3 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==113 & analytic$InstrID==3)]
 ###
-Q10a2cM112.3 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q10a2cM113.3 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q10d2fM112.3 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q10d2fM113.3 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q10g2iM112.3 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q10g2iM113.3 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q11M112.3 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q11M113.3 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
+Q10a2cM112.3 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q10a2cM113.3 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q10d2fM112.3 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q10d2fM113.3 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q10g2iM112.3 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q10g2iM113.3 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q11M112.3 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q11M113.3 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==113 & analytic$InstrID==3)]
 ###
-Q1213M112.3 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q1213M113.3 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q14M112.3 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q14M113.3 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q1516M112.3 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q1516M113.3 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
-Q17M112.3 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==112 & roster.exam$InstrID==3)]
-Q17M113.3 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==113 & roster.exam$InstrID==3)]
+Q1213M112.3 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q1213M113.3 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q14M112.3 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q14M113.3 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q1516M112.3 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q1516M113.3 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==113 & analytic$InstrID==3)]
+Q17M112.3 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==112 & analytic$InstrID==3)]
+Q17M113.3 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==113 & analytic$InstrID==3)]
 ###
+
 ##########################
 par(mfrow=c(1,3))
 ##########################   
@@ -1154,32 +1210,32 @@ legend("topright", "Instructor C", bty="n")
 ```{r fig.align='center', fig.width=8, fig.height=3, fig.cap="Topic-specific difference between MAT112 and MAT113: Instructor D"}
 ###############
 ### Instr #4
-Q3M112.4 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q3M113.4 = (100*(roster.exam$Q3)/max(roster.exam$Q3))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q45M112.4 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q45M113.4 = (100*(roster.exam$Q45)/max(roster.exam$Q45))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q67M112.4 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q67M113.4 = (100*(roster.exam$Q67)/max(roster.exam$Q67))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q89M112.4 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q89M113.4 = (100*(roster.exam$Q89)/max(roster.exam$Q89))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
+Q3M112.4 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q3M113.4 = (100*(analytic$Q3)/max(analytic$Q3))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q45M112.4 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q45M113.4 = (100*(analytic$Q45)/max(analytic$Q45))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q67M112.4 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q67M113.4 = (100*(analytic$Q67)/max(analytic$Q67))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q89M112.4 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q89M113.4 = (100*(analytic$Q89)/max(analytic$Q89))[which(analytic$Course==113 & analytic$InstrID==4)]
 ###
-Q10a2cM112.4 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q10a2cM113.4 = (100*(roster.exam$Q10a2c)/max(roster.exam$Q10a2c))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q10d2fM112.4 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q10d2fM113.4 = (100*(roster.exam$Q10d2f)/max(roster.exam$Q10d2f))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q10g2iM112.4 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q10g2iM113.4 = (100*(roster.exam$Q10g2i)/max(roster.exam$Q10g2i))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q11M112.4 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q11M113.4 = (100*(roster.exam$Q11)/max(roster.exam$Q11))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
+Q10a2cM112.4 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q10a2cM113.4 = (100*(analytic$Q10a2c)/max(analytic$Q10a2c))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q10d2fM112.4 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q10d2fM113.4 = (100*(analytic$Q10d2f)/max(analytic$Q10d2f))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q10g2iM112.4 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q10g2iM113.4 = (100*(analytic$Q10g2i)/max(analytic$Q10g2i))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q11M112.4 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q11M113.4 = (100*(analytic$Q11)/max(analytic$Q11))[which(analytic$Course==113 & analytic$InstrID==4)]
 ###
-Q1213M112.4 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q1213M113.4 = (100*(roster.exam$Q1213)/max(roster.exam$Q1213))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q14M112.4 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q14M113.4 = (100*(roster.exam$Q14)/max(roster.exam$Q14))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q1516M112.4 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q1516M113.4 = (100*(roster.exam$Q1516)/max(roster.exam$Q1516))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
-Q17M112.4 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==112 & roster.exam$InstrID==4)]
-Q17M113.4 = (100*(roster.exam$Q17)/max(roster.exam$Q17))[which(roster.exam$Course==113 & roster.exam$InstrID==4)]
+Q1213M112.4 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q1213M113.4 = (100*(analytic$Q1213)/max(analytic$Q1213))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q14M112.4 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q14M113.4 = (100*(analytic$Q14)/max(analytic$Q14))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q1516M112.4 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q1516M113.4 = (100*(analytic$Q1516)/max(analytic$Q1516))[which(analytic$Course==113 & analytic$InstrID==4)]
+Q17M112.4 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==112 & analytic$InstrID==4)]
+Q17M113.4 = (100*(analytic$Q17)/max(analytic$Q17))[which(analytic$Course==113 & analytic$InstrID==4)]
 
 ###
 ##########################
@@ -1233,13 +1289,13 @@ As stated at the beginning of this report, the goal of this project is to assess
 
 Some routine data processing and variable transformation/conversion were performed to remove some potentially sensitive information. The issue of sparse categories for some categorical variables was also handled to improve data quality. 
 
-Descriptive methods and visual tools were used to identify potential factors that influence the exam scores. We also used linear regression models to extract the true difference of the mean exam scores between MAT112 and MAT113 (also called <font color = "red">*\color{red}\textbf{net-gain}*</font>) with adjustments due to other influential factors such as placement scores (PPL) and the instructors.
+Descriptive methods and visual tools were used to identify potential factors that influence the exam scores. We also used linear regression models to extract the true difference of the mean exam scores between MAT112 and MAT113 (also called <font color = "red">*\color{red}net performance gain*</font>) with adjustments due to other influential factors such as placement scores (PPL) and the instructors.
 
 Key findings are summarized in the following.
 
-* MAT112 students outperformed significantly MAT113 students. The *net performance gain* was about 11 points on a 100-point scale after the model was adjusted by factors such as PPL, instructor effect, etc.
+* MAT112 students outperformed significantly MAT113 students. The *net performance gain* was nearly 14 points on a 100-point scale after the model was adjusted by factors such as PPL, instructor effect, etc.
 
-* The math placement scores were positively correlated with the final exam scores ($p<0.05$). The strength of the correlation was weak (the correlation coefficient $r \approx 0.082$). 
+* The math placement scores were positively correlated with the final exam scores ($p<0.05$). The strength of the correlation was weak (the correlation coefficient $r \approx 0.136$). 
 
 * The average PPL score of MAT112 was significantly lower than that of MAT113 students, but the average exam score of MAT112 was significantly higher than that of MAT113.
 
