@@ -115,7 +115,7 @@ In general, exam scores are influenced by various factors such as student prepar
 
 Some of the key findings are outlined in the following.
 
-1. There was a solid evidence that MAT112 students outperformed MAT113 students with a <font color = "red">*net performance gain*</font> of nearly 14 points (out of 100).
+1. There was a solid evidence that MAT112 students outperformed MAT113 students with a <font color = "red">*net performance gain*</font> of more than 14 points (out of 100).
 
 2. MAT112 students had significantly lower PPL scores than their peers in MAT113.
 
